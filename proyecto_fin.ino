@@ -1,4 +1,4 @@
-int pinOptico = 2;
+int pinOptico = 18;
 int pinLin1 = 10;
 int pinLin2 = 9;
 int pinEnableDC= 3;
@@ -33,7 +33,7 @@ ros::NodeHandle nh;
 std_msgs::String str_msg;
 std_msgs::Float32 float_msg;
 //std_msgs::String rec; 
-ros::Publisher chatter("/plot_y160502155899", &float_msg);
+ros::Publisher chatter("/plot_y160502", &float_msg);
 void message_ros( const std_msgs::String& ros_msg );
 ros::Subscriber <std_msgs::String> sub("msg_ejemplo", &message_ros);
 
@@ -90,7 +90,7 @@ void setup() {
  myservo.attach(pinServo);
  myservo.write(90);
   
- forw(80);
+ forw(150);
  //back();
 }
 
@@ -114,7 +114,7 @@ void lectura(){
 ///Interrupcion de timer 1 decima de segundo
 ISR(TIMER5_COMPA_vect){
   //Serial.println(numH);
-  v = (numH/16.0)*10;
+  v = (numH/16.0);
   //Serial.println(v);
 //  valTimer++;
   numH = 0;
@@ -136,9 +136,18 @@ void back(){
 
 void forw(int in){
   digitalWrite(3,HIGH);
-  analogWrite(5,in);
-  analogWrite(4,0);
- 
+
+  if(in >=0){
+    analogWrite(5,in);
+    analogWrite(4,0);
+    }
+    else{
+      in =-in;
+      analogWrite(5,0);
+      analogWrite(4,in);
+      
+      }
+  
 }
  
 
@@ -239,29 +248,32 @@ void accion(int edo){
       break;
     }
   myservo.write(alpha);
-  if(edo == 0)
-    delay(100);
+//  if(edo == 0)
+//    delay(100);
   }
 
-double velD = 12;
+double velD = 14;
 
 double errorAcum = 0;
-double ka = 5;
-double kb = 5;
+double ka = 1;
+double kb = 0.5;
 double ang = 35;
   double sec = 15;
   int izqL = 0;
   int derL = 0;
   int estado = 0;
-  
+ int in;
 void loop() {
-//  float_msg.data =  v;
+
+//Escribe velocidad en ross
+  float_msg.data =  v;
+  chatter.publish( &float_msg );
+  nh.spinOnce();
+
 ////  float_msg.data =  valTimer;
 ////  if(valTimer %10 ==0)
 ////  chatter.publish( &float_msg );
 //  //float_msg.data =  numH;
-//  chatter.publish( &float_msg );
-// nh.spinOnce();
  
   //pinLin1 = der
   //pinLin2 = izq
@@ -273,19 +285,10 @@ void loop() {
  accion(estado);
  //delay(500);
   
-
-// int in = (int)(ka*(velD-v)+kb*errorAcum);
+// in = (int)(ka*(velD-v)+kb*errorAcum);
 // forw(in);
 // errorAcum = velD-v+errorAcum;
 
 
-//NO FUNCIONA
-
-//  k = sec/ang;
-//  
-//  if (band==1){
-//    muevet(ang,sec);
-//  }
-  //myservo.write(160); // rangoServo(40,160);
   
 }
